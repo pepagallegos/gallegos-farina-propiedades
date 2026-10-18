@@ -42,53 +42,9 @@ footer{background:var(--navy);color:white;padding:28px 0}.foot{display:flex;alig
 <section class="section warm" id="ventas"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Nuevas oportunidades</p><h2>Propiedades en venta</h2></div><p>También podrás encontrar aquí propiedades en venta, presentadas con la misma claridad y atención a los detalles.</p></div><div id="saleList" class="property-grid"></div><div id="saleEmpty" class="empty"><div class="empty-symbol">⌂</div><h3>Próximamente, nuevas propiedades</h3><p>Cuando incorporemos propiedades en venta, sus fichas aparecerán aquí.</p><a class="link" href="#contacto">Hacer una consulta →</a></div></div></section>
 <section class="section" id="nosotros"><div class="wrap about-grid"><div class="about-card"><p class="eyebrow">Gallegos Fariña Propiedades</p><h3>Un buen lugar comienza con una buena decisión.</h3><div class="rule"></div><p style="font-size:13px;color:#dfe6eb;max-width:300px;margin:0">Conocimiento local, atención responsable y claridad en cada etapa.</p></div><div class="about-copy"><p class="eyebrow">Nuestra forma de trabajar</p><h2>Profesionalismo que se siente cercano.</h2><p>En Gallegos Fariña Propiedades creemos que una buena gestión inmobiliaria comienza escuchando. Nuestro compromiso es entregar información clara, atención personalizada y acompañamiento durante el proceso de arriendo o compra.</p><p>Esta página crecerá con cada nueva propiedad, con fotografías y antecedentes actualizados para que puedas evaluar tus opciones con tranquilidad.</p><div class="values"><div class="value"><strong>Transparencia</strong><span>Información clara.</span></div><div class="value"><strong>Compromiso</strong><span>Gestión responsable.</span></div><div class="value"><strong>Atención personal</strong><span>Acompañamiento directo.</span></div></div></div></div></section>
 <section class="contact" id="contacto"><div class="wrap contact-row"><div><h2>¿Buscas arrendar, comprar o publicar?</h2><p>Cuéntanos qué necesitas y conversemos sobre el siguiente paso.</p></div><a class="button" href="mailto:propmariajosegallegos@gmail.com?subject=Consulta%20Gallegos%20Fariña%20Propiedades">Enviar una consulta ↗</a></div></section>
-<section class="admin"><div class="wrap"><div class="admin-top"><div><h2>Administración de propiedades</h2><p>Panel demostrativo para preparar fichas de inmuebles.</p></div><button class="button" id="toggleAdmin">Abrir panel de prueba</button></div><div class="admin-panel" id="adminPanel"><p class="notice"><strong>Importante:</strong> este panel es solo una demostración local. Las fichas se guardan en este navegador; todavía no es una administración privada en Internet. No uses información sensible.</p><form id="propertyForm"><div class="form-grid">
-<div><label for="pTitle">Nombre de la propiedad</label><input id="pTitle" required placeholder="Ej. Casa de tres dormitorios"></div>
-<div><label for="pOperation">Operación</label><select id="pOperation"><option>Arriendo</option><option>Venta</option></select></div>
-<div><label for="pType">Tipo de propiedad</label><select id="pType"><option>Casa</option><option>Departamento</option><option>Terreno o parcela</option><option>Local comercial</option><option>Oficina</option><option>Otro</option></select></div>
-<div><label for="pLocation">Comuna o sector</label><input id="pLocation" required placeholder="Ej. Talca"></div>
-<div><label for="pPrice">Precio y moneda</label><input id="pPrice" required placeholder="Ej. $450.000 mensuales"></div>
-<div><label for="pDetails">Características</label><input id="pDetails" placeholder="Ej. 3 dormitorios · 2 baños"></div>
-<div class="wide"><label for="pDescription">Descripción</label><textarea id="pDescription" placeholder="Descripción de la propiedad"></textarea></div>
-<div class="wide"><label for="pPhotos">Fotografías</label><input id="pPhotos" type="file" accept="image/*" multiple></div>
-</div><p><button class="button" type="submit">Guardar ficha de prueba</button></p></form><div id="saved"></div></div></div></section>
+<section class="admin"><div class="wrap"><div class="admin-top"><div><h2>Administración de propiedades</h2><p>Acceso privado para gestionar las propiedades.</p></div><a class="button" href="admin.html">Ingresar a administración</a></div></div></section>
 </main>
 <footer><div class="wrap foot"><div class="foot-brand">GALLEGOS FARIÑA<small>PROPIEDADES</small></div><div class="footnote">Propiedades que abren nuevas historias.</div><div class="footnote">Sitio de presentación · Prototipo local</div></div></footer>
-<script>
-/* El panel sigue siendo local temporalmente; el catálogo público se carga desde Supabase. */
-const KEY='gf_props_v2';
-let props=[];
-try { props=JSON.parse(localStorage.getItem(KEY)||'[]'); } catch(e) { props=[]; }
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function renderSaved(){
-  const el=document.getElementById('saved');
-  if(!el) return;
-  el.innerHTML=props.length
-    ? '<div class="saved-list">'+props.map(p=>`<div class="saved-item"><span><strong>${esc(p.title)}</strong><br>${esc(p.operation)} · ${esc(p.location)}</span><button type="button" onclick="removeProp(${Number(p.id)})">Eliminar</button></div>`).join('')+'</div>'
-    : '';
-}
-function removeProp(id){
-  props=props.filter(p=>Number(p.id)!==Number(id));
-  localStorage.setItem(KEY,JSON.stringify(props));
-  renderSaved();
-}
-document.getElementById('toggleAdmin')?.addEventListener('click',()=>{
-  const panel=document.getElementById('adminPanel');
-  panel?.classList.toggle('open');
-  const button=document.getElementById('toggleAdmin');
-  if(button) button.textContent=panel?.classList.contains('open')?'Cerrar panel':'Abrir panel de prueba';
-});
-document.getElementById('propertyForm')?.addEventListener('submit',async e=>{
-  e.preventDefault();
-  const files=[...document.getElementById('pPhotos').files];
-  const photos=await Promise.all(files.map(f=>new Promise(resolve=>{
-    const reader=new FileReader(); reader.onload=()=>resolve(reader.result); reader.readAsDataURL(f);
-  })));
-  props.push({id:Date.now(),title:document.getElementById('pTitle').value,operation:document.getElementById('pOperation').value,type:document.getElementById('pType').value,location:document.getElementById('pLocation').value,price:document.getElementById('pPrice').value,details:document.getElementById('pDetails').value,description:document.getElementById('pDescription').value,photos});
-  try { localStorage.setItem(KEY,JSON.stringify(props)); e.target.reset(); renderSaved(); }
-  catch(err) { props.pop(); alert('No se pudo guardar. Prueba con fotografías más pequeñas.'); }
-});
-renderSaved();
-</script>
+
 <script src="propiedades-publicas.js"></script>
 </body></html>
