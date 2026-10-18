@@ -97,10 +97,10 @@
       : `<div class="gf-main-photo" style="display:grid;place-items:center">Sin fotografías disponibles</div>`;
 
     const thumbs = currentPhotos.length > 1
-    currentPhotos.map((src, i) =>
-          `<img src="${esc(src)}" alt="Ver fotografía ${i+1}" data-photo="${i}" class="${i===0?'active':''}">`
-        ).join('')}</div>`
-      : '';
+  ? `<div class="gf-thumbs">${currentPhotos.map((src, i) =>
+      `<img src="${esc(src)}" alt="Ver fotografía ${i+1}" data-photo="${i}" class="${i===0?'active':''}">`
+    ).join('')}</div>`
+  : '';
 
     content.innerHTML = `
       <span>${esc(p.operacion)} · ${esc(p.tipo)}</span>
