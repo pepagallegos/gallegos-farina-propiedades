@@ -55,15 +55,40 @@ footer{background:var(--navy);color:white;padding:28px 0}.foot{display:flex;alig
 </main>
 <footer><div class="wrap foot"><div class="foot-brand">GALLEGOS FARIÑA<small>PROPIEDADES</small></div><div class="footnote">Propiedades que abren nuevas historias.</div><div class="footnote">Sitio de presentación · Prototipo local</div></div></footer>
 <script>
-const KEY='gf_props_v2';let props=[];try{props=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){props=[]}
+/* El panel sigue siendo local temporalmente; el catálogo público se carga desde Supabase. */
+const KEY='gf_props_v2';
+let props=[];
+try { props=JSON.parse(localStorage.getItem(KEY)||'[]'); } catch(e) { props=[]; }
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function card(p){let pic=p.photos&&p.photos[0]?p.photos[0]:'';return `<article class="property">${pic?`<img src="${pic}" alt="">`:''}<div class="property-body"><span class="tag">${esc(p.operation)} · ${esc(p.type)}</span><h3>${esc(p.title)}</h3><p>${esc(p.location)} · ${esc(p.details)}</p><p class="price">${esc(p.price)}</p><p>${esc(p.description)}</p></div></article>`}
-function render(){let r=props.filter(p=>p.operation==='Arriendo'),s=props.filter(p=>p.operation==='Venta');document.getElementById('rentList').innerHTML=r.map(card).join('');document.getElementById('saleList').innerHTML=s.map(card).join('');document.getElementById('rentEmpty').style.display=r.length?'none':'block';document.getElementById('saleEmpty').style.display=s.length?'none':'block';renderSaved()}
-document.getElementById('searchForm').addEventListener('submit',e=>{e.preventDefault();let op=document.getElementById('operation').value,t=document.getElementById('type').value,l=document.getElementById('location').value.trim().toLowerCase();let filtered=props.filter(p=>(op==='Todas'||p.operation===op)&&(t==='Todas'||p.type===t)&&(!l||p.location.toLowerCase().includes(l)));let r=filtered.filter(p=>p.operation==='Arriendo'),s=filtered.filter(p=>p.operation==='Venta');document.getElementById('rentList').innerHTML=r.map(card).join('');document.getElementById('saleList').innerHTML=s.map(card).join('');document.getElementById('rentEmpty').style.display=r.length?'none':'block';document.getElementById('saleEmpty').style.display=s.length?'none':'block';document.getElementById(op==='Venta'?'ventas':'arriendos').scrollIntoView({behavior:'smooth'})});
-document.getElementById('toggleAdmin').addEventListener('click',()=>{let p=document.getElementById('adminPanel');p.classList.toggle('open');document.getElementById('toggleAdmin').textContent=p.classList.contains('open')?'Cerrar panel':'Abrir panel de prueba'});
-document.getElementById('propertyForm').addEventListener('submit',async e=>{e.preventDefault();let files=[...document.getElementById('pPhotos').files];let photos=await Promise.all(files.map(f=>new Promise(res=>{let r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(f)})));props.push({id:Date.now(),title:document.getElementById('pTitle').value,operation:document.getElementById('pOperation').value,type:document.getElementById('pType').value,location:document.getElementById('pLocation').value,price:document.getElementById('pPrice').value,details:document.getElementById('pDetails').value,description:document.getElementById('pDescription').value,photos});try{localStorage.setItem(KEY,JSON.stringify(props));e.target.reset();render()}catch(err){props.pop();alert('No se pudo guardar. Prueba con fotografías más pequeñas.')}});
-function renderSaved(){let el=document.getElementById('saved');el.innerHTML=props.length?'<div class="saved-list">'+props.map(p=>`<div class="saved-item"><span><strong>${esc(p.title)}</strong><br>${esc(p.operation)} · ${esc(p.location)}</span><button onclick="removeProp(${p.id})">Eliminar</button></div>`).join('')+'</div>':''}
-function removeProp(id){props=props.filter(p=>p.id!==id);localStorage.setItem(KEY,JSON.stringify(props));render()}
-render();
+function renderSaved(){
+  const el=document.getElementById('saved');
+  if(!el) return;
+  el.innerHTML=props.length
+    ? '<div class="saved-list">'+props.map(p=>`<div class="saved-item"><span><strong>${esc(p.title)}</strong><br>${esc(p.operation)} · ${esc(p.location)}</span><button type="button" onclick="removeProp(${Number(p.id)})">Eliminar</button></div>`).join('')+'</div>'
+    : '';
+}
+function removeProp(id){
+  props=props.filter(p=>Number(p.id)!==Number(id));
+  localStorage.setItem(KEY,JSON.stringify(props));
+  renderSaved();
+}
+document.getElementById('toggleAdmin')?.addEventListener('click',()=>{
+  const panel=document.getElementById('adminPanel');
+  panel?.classList.toggle('open');
+  const button=document.getElementById('toggleAdmin');
+  if(button) button.textContent=panel?.classList.contains('open')?'Cerrar panel':'Abrir panel de prueba';
+});
+document.getElementById('propertyForm')?.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const files=[...document.getElementById('pPhotos').files];
+  const photos=await Promise.all(files.map(f=>new Promise(resolve=>{
+    const reader=new FileReader(); reader.onload=()=>resolve(reader.result); reader.readAsDataURL(f);
+  })));
+  props.push({id:Date.now(),title:document.getElementById('pTitle').value,operation:document.getElementById('pOperation').value,type:document.getElementById('pType').value,location:document.getElementById('pLocation').value,price:document.getElementById('pPrice').value,details:document.getElementById('pDetails').value,description:document.getElementById('pDescription').value,photos});
+  try { localStorage.setItem(KEY,JSON.stringify(props)); e.target.reset(); renderSaved(); }
+  catch(err) { props.pop(); alert('No se pudo guardar. Prueba con fotografías más pequeñas.'); }
+});
+renderSaved();
 </script>
+<script src="propiedades-publicas.js"></script>
 </body></html>
